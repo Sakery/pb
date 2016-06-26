@@ -27,7 +27,14 @@
 *.i*86
 *.x86_64
 *.hex
+pb
 
 # Debug files
 *.dSYM/
 *.su
+
+# lex/yacc files
+*.yy.c
+*.output
+*.tab.c
+*.tab.h

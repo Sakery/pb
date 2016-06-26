@@ -5,7 +5,7 @@
 _pb_ is a simulation of the Casio PB-100 pocket computer. It consists of a
 BASIC interpreter and a simulated pocket computer environment.
 
-# Useful Links
+## Useful Links
 
 - [Technical information](http://www.pisi.com.pl/piotr433/) on a range of
 classic Casio programmable calculators and personal computers,
