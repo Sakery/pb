@@ -1,305 +1,305 @@
 
-#include <stdio.h>
 #include "Statement.h"
+#include "UI.h"
 #include "pb.h"
 #include "pb.tab.h"
 
-void dump(nodeType *n) {
+void dump(UI *ui, nodeType *n) {
   if (!n)
     return;
   switch (n->type) {
   case typeCon:
-    printf("%G", n->con.value);
+    UI_printf(ui, "%G", n->con.value);
     break;
   case typeStringLiteral:
-    printf("\"%s\"", n->str.value);
+    UI_printf(ui, "\"%s\"", n->str.value);
     break;
   case typeStringVariable:
     if (n->strvar.i >= 0) {
-      printf("%c$", n->strvar.i + 'A');
+      UI_printf(ui, "%c$", n->strvar.i + 'A');
       if (n->strvar.index) {
-        printf("(");
-        dump(n->id.index);
-        printf(")");
+        UI_printf(ui, "(");
+        dump(ui, n->id.index);
+        UI_printf(ui, ")");
       }
     } else {
-      printf("$");
+      UI_printf(ui, "$");
     }
     break;
   case typeNumToStr:
-    dump(n->numToStr.op);
+    dump(ui, n->numToStr.op);
     break;
   case typeId:
-    printf("%c", n->id.i + 'A');
+    UI_printf(ui, "%c", n->id.i + 'A');
     if (n->id.index) {
-      printf("(");
-      dump(n->id.index);
-      printf(")");
+      UI_printf(ui, "(");
+      dump(ui, n->id.index);
+      UI_printf(ui, ")");
     }
     break;
   case typeOpr:
     switch (n->opr.oper) {
     case INPUT:
-      printf("INPUT ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "INPUT ");
+      dump(ui, n->opr.op[0]);
       break;
     case KEY:
-      printf("KEY");
+      UI_printf(ui, "KEY");
       break;
     case PRINT:
-      printf("PRINT");
+      UI_printf(ui, "PRINT");
       if (n->opr.nops == 1) {        /* character_expression */
-        printf(" ");
-        dump(n->opr.op[0]);
+        UI_printf(ui, " ");
+        dump(ui, n->opr.op[0]);
       } else if (n->opr.nops == 2) { /* CSR expression SEMICOLON character_expression */
-        printf(" CSR ");
-        dump(n->opr.op[0]);
-        printf(";");
-        dump(n->opr.op[1]);
+        UI_printf(ui, " CSR ");
+        dump(ui, n->opr.op[0]);
+        UI_printf(ui, ";");
+        dump(ui, n->opr.op[1]);
       }
       break;
     case IF:
-      printf("IF ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "IF ");
+      dump(ui, n->opr.op[0]);
       if (n->opr.flags == 1)
-        printf(";");
+        UI_printf(ui, ";");
       else
-        printf(" THEN ");
-      dump(n->opr.op[1]);
+        UI_printf(ui, " THEN ");
+      dump(ui, n->opr.op[1]);
       break;
     case FOR:
-      printf("FOR ");
-      dump(n->opr.op[0]);
-      printf(" TO ");
-      dump(n->opr.op[1]);
+      UI_printf(ui, "FOR ");
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, " TO ");
+      dump(ui, n->opr.op[1]);
       if (n->opr.nops > 2) {
-        printf(" STEP ");
-        dump(n->opr.op[2]);
+        UI_printf(ui, " STEP ");
+        dump(ui, n->opr.op[2]);
       }
       break;
     case NEXT:
-      printf("NEXT ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "NEXT ");
+      dump(ui, n->opr.op[0]);
       break;
     case STOP:
-      printf("STOP");
+      UI_printf(ui, "STOP");
       break;
     case END:
-      printf("END");
+      UI_printf(ui, "END");
       break;
     case VAC:
-      printf("VAC");
+      UI_printf(ui, "VAC");
       break;
     case MODE:
-      printf("MODE ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "MODE ");
+      dump(ui, n->opr.op[0]);
       break;
     case SETE:
-      printf("SET E ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "SET E ");
+      dump(ui, n->opr.op[0]);
       break;
     case SETF:
-      printf("SET F ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "SET F ");
+      dump(ui, n->opr.op[0]);
       break;
     case SETN:
-      printf("SET N");
+      UI_printf(ui, "SET N");
       break;
     case LEN:
-      printf("LEN(");
-      dump(n->opr.op[0]);
-      printf(")");
+      UI_printf(ui, "LEN(");
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, ")");
       break;
     case MID:
-      printf("MID(");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "MID(");
+      dump(ui, n->opr.op[0]);
       if (n->opr.nops > 1) {
-        printf(",");
-        dump(n->opr.op[1]);
+        UI_printf(ui, ",");
+        dump(ui, n->opr.op[1]);
       }
-      printf(")");
+      UI_printf(ui, ")");
       break;
     case VAL:
-      printf("VAL(");
-      dump(n->opr.op[0]);
-      printf(")");
+      UI_printf(ui, "VAL(");
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, ")");
       break;
     case GOTO:
-      printf("GOTO ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "GOTO ");
+      dump(ui, n->opr.op[0]);
       break;
     case GOSUB:
-      printf("GOSUB ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "GOSUB ");
+      dump(ui, n->opr.op[0]);
       break;
     case RETURN:
-      printf("RETURN");
+      UI_printf(ui, "RETURN");
       break;
     case PLUS:
       if (n->opr.nops == 1) {
-        printf("+");
-        dump(n->opr.op[0]);
+        UI_printf(ui, "+");
+        dump(ui, n->opr.op[0]);
       } else {
-        dump(n->opr.op[0]);
-        printf("+");
-        dump(n->opr.op[1]);
+        dump(ui, n->opr.op[0]);
+        UI_printf(ui, "+");
+        dump(ui, n->opr.op[1]);
       }
       break;
     case MINUS:
       if (n->opr.nops == 1) {
-        printf("-");
-        dump(n->opr.op[0]);
+        UI_printf(ui, "-");
+        dump(ui, n->opr.op[0]);
       } else {
-        dump(n->opr.op[0]);
-        printf("-");
-        dump(n->opr.op[1]);
+        dump(ui, n->opr.op[0]);
+        UI_printf(ui, "-");
+        dump(ui, n->opr.op[1]);
       }
       break;
     case MUL:
-      dump(n->opr.op[0]);
-      printf("*");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "*");
+      dump(ui, n->opr.op[1]);
       break;
     case DIV:
-      dump(n->opr.op[0]);
-      printf("/");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "/");
+      dump(ui, n->opr.op[1]);
       break;
     case POW:
-      dump(n->opr.op[0]);
-      printf("↑");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "↑");
+      dump(ui, n->opr.op[1]);
       break;
     case LPAREN:
-      printf("(");
-      dump(n->opr.op[0]);
-      printf(")");
+      UI_printf(ui, "(");
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, ")");
       break;
     case SIN:
-      printf("SIN ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "SIN ");
+      dump(ui, n->opr.op[0]);
       break;
     case COS:
-      printf("COS ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "COS ");
+      dump(ui, n->opr.op[0]);
       break;
     case TAN:
-      printf("TAN ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "TAN ");
+      dump(ui, n->opr.op[0]);
       break;
     case ASN:
-      printf("ASN ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "ASN ");
+      dump(ui, n->opr.op[0]);
       break;
     case ACS:
-      printf("ACS ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "ACS ");
+      dump(ui, n->opr.op[0]);
       break;
     case ATN:
-      printf("ATN ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "ATN ");
+      dump(ui, n->opr.op[0]);
       break;
     case SQR:
-      printf("SQR ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "SQR ");
+      dump(ui, n->opr.op[0]);
       break;
     case EXP:
-      printf("EXP ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "EXP ");
+      dump(ui, n->opr.op[0]);
       break;
     case LN:
-      printf("LN ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "LN ");
+      dump(ui, n->opr.op[0]);
       break;
     case LOG:
-      printf("LOG ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "LOG ");
+      dump(ui, n->opr.op[0]);
       break;
     case INT:
-      printf("INT ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "INT ");
+      dump(ui, n->opr.op[0]);
       break;
     case FRAC:
-      printf("FRAC ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "FRAC ");
+      dump(ui, n->opr.op[0]);
       break;
     case ABS:
-      printf("ABS ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "ABS ");
+      dump(ui, n->opr.op[0]);
       break;
     case SGN:
-      printf("SGN ");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "SGN ");
+      dump(ui, n->opr.op[0]);
       break;
     case RND:
-      printf("RND(");
-      dump(n->opr.op[0]);
-      printf(",");
-      dump(n->opr.op[1]);
-      printf(")");
+      UI_printf(ui, "RND(");
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, ",");
+      dump(ui, n->opr.op[1]);
+      UI_printf(ui, ")");
       break;
     case RAN:
-      printf("RAN#");
+      UI_printf(ui, "RAN#");
       break;
     case PI:
-      printf("π");
+      UI_printf(ui, "π");
       break;
     case ASSIGN_NUM:
     case ASSIGN_STR:
     case EQ:
-      dump(n->opr.op[0]);
-      printf("=");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "=");
+      dump(ui, n->opr.op[1]);
       break;
     case NE:
-      dump(n->opr.op[0]);
-      printf("≠");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "≠");
+      dump(ui, n->opr.op[1]);
       break;
     case LT:
-      dump(n->opr.op[0]);
-      printf("<");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "<");
+      dump(ui, n->opr.op[1]);
       break;
     case LE:
-      dump(n->opr.op[0]);
-      printf("≤");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "≤");
+      dump(ui, n->opr.op[1]);
       break;
     case GT:
-      dump(n->opr.op[0]);
-      printf(">");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, ">");
+      dump(ui, n->opr.op[1]);
       break;
     case GE:
-      dump(n->opr.op[0]);
-      printf("≥");
-      dump(n->opr.op[1]);
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, "≥");
+      dump(ui, n->opr.op[1]);
       break;
     case COMMA:
       if (n->opr.op[0]) {
         /* The first part may be NULL if this is an input_phrase without a
            text prompt */
-        dump(n->opr.op[0]);
+        dump(ui, n->opr.op[0]);
       }
       if (n->opr.nops > 1) {
         if (n->opr.op[0] && n->opr.op[1])
-          printf(",");
-        dump(n->opr.op[1]);
+          UI_printf(ui, ",");
+        dump(ui, n->opr.op[1]);
       }
       break;
     case SEMICOLON:
-      dump(n->opr.op[0]);
-      printf(";");
+      dump(ui, n->opr.op[0]);
+      UI_printf(ui, ";");
       if (n->opr.nops > 1)
-        dump(n->opr.op[1]);
+        dump(ui, n->opr.op[1]);
       break;
     case HASH:
-      printf("#");
-      dump(n->opr.op[0]);
+      UI_printf(ui, "#");
+      dump(ui, n->opr.op[0]);
       break;
     default:
-      printf("(UNKNOWN)");
+      UI_printf(ui, "(UNKNOWN)");
       break;
     }
     break;

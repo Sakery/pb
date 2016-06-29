@@ -2,6 +2,7 @@
 #define DEVICE_H__
 
 /* forward declarations */
+struct UITag;
 struct StatementTag;
 struct nodeTypeTag;
 struct ForLoopTag;
@@ -16,6 +17,7 @@ struct ForLoopTag;
  * The programmable device
  */
 typedef struct DeviceTag {
+  struct UITag *ui;
   struct StatementTag *program[10];
   int curr_prog_area;
   struct StatementTag *curr_statement;
@@ -37,7 +39,7 @@ typedef struct DeviceTag {
 
 extern Device *device;
 
-Device *Device_create();
+Device *Device_create(struct UITag *ui);
 void Device_destroy(Device *self);
 void Device_run(Device *self, int prog_area);
 void Device_list(Device *self, int prog_area);

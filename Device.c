@@ -3,8 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#include <signal.h>
 #include "Device.h"
 #include "Statement.h"
+#include "UI.h"
 #include "pb.h"
 #include "pb.tab.h"
 
@@ -15,30 +18,55 @@ typedef struct ForLoopTag {
   double step;
 } ForLoop;
 
-static Statement *_findStatement(Statement *first_stmnt, int line_num);
+static void _push_for_loop(Device *self, Statement *loop_statement, int var_id, double limit, double step);
+static void _pop_for_loop(Device *self);
+static ForLoop *_for_loop(Device *self);
+static int _step_for_loop(Device *self);
+static Statement *_findStatement(Statement *first_statement, int line_num);
+static void _destroyProgram(Statement *first_statement);
 static double _ex(Device *self, nodeType *n);
 
-Device *Device_create() {
+static volatile int keepRunning = 1;
+
+void intHandler(int dummy) {
+  keepRunning = 0;
+}
+
+Device *Device_create(UI *ui) {
   Device *device = calloc(1, sizeof(Device));
+  device->ui = ui;
   device->for_loop_index = -1;
   device->subs_index = -1;
   return device;
 }
 
 void Device_destroy(Device *self) {
+  int i;
+  for (i = 0; i < 10; ++i) {
+    _destroyProgram(self->program[i]);
+    self->program[i] = NULL;
+  }
+  while (_for_loop(self))
+    _pop_for_loop(self);
   free(self);
 }
 
 void Device_run(Device *self, int prog_area) {
-  stash_term_settings();
-  non_blocking_term();
+
+  signal(SIGINT, intHandler);
+  
+  UI_clear(self->ui);
+  UI_csr(self->ui, 0);
+
   self->curr_prog_area = prog_area;
   self->curr_statement = self->program[self->curr_prog_area];
-  while (self->curr_statement) {
-    Statement_dump(self->curr_statement);
+  while (self->curr_statement && keepRunning) {
+    /* Statement_dump(self->curr_statement, self->ui); */
     Device_executeStatement(self, self->curr_statement);
+
+    struct timespec ts = { 0, 1000000 };
+    nanosleep(&ts, NULL);
   }
-  restore_term_settings();
 }
 
 void Device_list(Device *self, int prog_area) {
@@ -46,7 +74,7 @@ void Device_list(Device *self, int prog_area) {
   self->curr_statement = self->program[self->curr_prog_area];
   while (self->curr_statement) {
     if (self->curr_statement->line_num)
-      Statement_dumpLine(self->curr_statement);
+      Statement_dumpLine(self->curr_statement, self->ui);
     self->curr_statement = self->curr_statement->next_statement;
   }
 }
@@ -54,7 +82,7 @@ void Device_list(Device *self, int prog_area) {
 void Device_listAll(Device *self) {
   for (int i = 0; i < 10; ++i) {
     if (self->program[i]) {
-      printf("\nP%d\n\n", i);
+      UI_printf(self->ui, "\nP%d\n\n", i);
       Device_list(self, i);
     }
   }
@@ -94,8 +122,8 @@ void Device_addStatement(Device *self, int prog_area, Statement *stmnt) {
   self->program[prog_area] = first_stmnt;
 }
 
-static Statement *_findStatement(Statement *first_stmnt, int line_num) {
-  Statement *p = first_stmnt;
+static Statement *_findStatement(Statement *first_statement, int line_num) {
+  Statement *p = first_statement;
   while (p) {
     if (p->line_num == line_num)
       return p;
@@ -104,10 +132,20 @@ static Statement *_findStatement(Statement *first_stmnt, int line_num) {
   return NULL;
 }
 
+static void _destroyProgram(Statement *first_statement) {
+  Statement *p = first_statement;
+  while (p) {
+    Statement *next = p->next_statement;
+    Statement_destroy(p);
+    p = next;
+  }
+}
+
 static void info(const char *str) {
   /* printf("%s\n", str); */
 }
 
+/*
 static void spit(int level, nodeType *n) {
   int i;
   for (i = 0; i < level; ++i)
@@ -121,6 +159,7 @@ static void spit(int level, nodeType *n) {
     printf("\n");
   }
 }
+*/
 
 static double _angular_unit_to_rad(Device *self, double d) {
   if (self->angular_unit == ANGULAR_UNIT_DEG)
@@ -214,13 +253,13 @@ static void _input_phrase(Device *self, nodeType *n) {
   if (n->opr.op[0]) {
     _reset_char_result(self);
     _ex(self, n->opr.op[0]);
-    printf("%s", _char_result(self));
+    UI_printf(self->ui, "%s", _char_result(self));
   }
-  printf("?");
+  UI_printf(self->ui, "?");
   _reset_char_result(self);
-  blocking_term();
-  fgets(_char_result(self), MAX_OUTPUT, stdin);
-  non_blocking_term();
+  UI_gets(self->ui, _char_result(self), MAX_OUTPUT);
+  UI_clear(self->ui);
+  UI_csr(self->ui, 0);
   char *c = strchr(_char_result(self), '\n');
   if (c)
     *c = 0;
@@ -248,28 +287,33 @@ static void _key(Device *self) {
     _char_result(self)[0] = c;
     _char_result(self)[1] = 0;
   }
-  printf("KEY=\"%s\"\n", _char_result(self));
+  UI_printf(self->ui, "KEY=\"%s\"\n", _char_result(self));
 }
 
 static void _print(Device *self, nodeType *char_expr) {
   _reset_char_result(self);
   _ex(self, char_expr);
-  printf("%s%s", _char_result(self), self->no_cr ? "" : "\n");
+  UI_printf(self->ui, _char_result(self));
+  if (!self->no_cr) {
+    UI_stop(self->ui);
+    UI_clear(self->ui);
+    UI_csr(self->ui, 0);
+  }
   self->no_cr = 0;
 }
 
 static void _print_csr(Device *self, nodeType *expr, nodeType *char_expr) {
-  _reset_char_result(self);
-  _ex(self, char_expr);
-  printf("%s%s", _char_result(self), self->no_cr ? "" : "\n");
-  self->no_cr = 0;
+  int x = _ex(self, expr);
+  UI_clear(self->ui);
+  UI_csr(self->ui, x);
+  _print(self, char_expr);
 }
 
 static int _jump(Device *self, nodeType *expr) {
   if (expr->type == typeOpr && expr->opr.oper == HASH) {
       int prog_area = _ex(self, expr);
       if (prog_area < 0 || prog_area > 9) {
-        printf("Invalid program area\n");
+        UI_printf(self->ui, "Invalid program area\n");
         return 0;
       }
       self->curr_prog_area = prog_area;
@@ -280,7 +324,7 @@ static int _jump(Device *self, nodeType *expr) {
     self->curr_statement = _findStatement(self->program[self->curr_prog_area], line_num);
     self->curr_statement_modified = 1;
     if (!self->curr_statement) {
-      printf("Invalid line number\n");
+      UI_printf(self->ui, "Invalid line number\n");
       return 0;
     }
   }
@@ -305,7 +349,7 @@ static int _comparison(Device *self, nodeType *comp) {
     strcpy(buf1, _char_result(self));
     lhs = strcmp(buf0, buf1);
     rhs = 0;
-    printf("** STRING COMPARISON (%G) ** (%s) (%s)\n", lhs, buf0, buf1);
+    UI_printf(self->ui, "** STRING COMPARISON (%G) ** (%s) (%s)\n", lhs, buf0, buf1);
   } else {
     lhs = _ex(self, comp->opr.op[0]);
     rhs = _ex(self, comp->opr.op[1]);
@@ -511,6 +555,8 @@ static double _ex(Device *self, nodeType *n) {
       break;
     case STOP:
       info("STOP");
+      UI_stop(self->ui);
+      UI_clear(self->ui);
       break;
     case END:
       info("END");

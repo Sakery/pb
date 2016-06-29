@@ -2,6 +2,7 @@
 #define STATEMENT_H__
 
 /* forward declarations */
+struct UITag;
 struct nodeTypeTag;
 
 /*
@@ -15,7 +16,7 @@ typedef struct StatementTag {
 
 Statement *Statement_create(struct nodeTypeTag *op, Statement *next);
 void Statement_destroy(Statement *self);
-void Statement_dump(Statement *self);
-void Statement_dumpLine(Statement *self);
+void Statement_dump(Statement *self, struct UITag *ui);
+void Statement_dumpLine(Statement *self, struct UITag *ui);
 
 #endif /* STATEMENT_H__ */

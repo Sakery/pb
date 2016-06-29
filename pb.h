@@ -1,6 +1,8 @@
 #ifndef PB_H__
 #define PB_H__
 
+struct UITag;
+
 typedef enum {
   typeCon,
   typeStringLiteral,
@@ -64,15 +66,17 @@ nodeType *id(int i, nodeType *index);
 nodeType *strvar(int i, nodeType *index);
 nodeType *opr(int oper, int nops, ...);
 nodeType *oprFlags(int oper, int flags, int nops, ...);
+void freeNode(nodeType *node);
 
+void dump(struct UITag *ui, nodeType *n);
+/*
 double ex(nodeType *n);
-void dump(nodeType *n);
 
 void stash_term_settings();
 void restore_term_settings();
 void non_blocking_term();
 void blocking_term();
-
+*/
 int yyparse();
 int yylex();
 int yyerror(char *s);

@@ -112,3 +112,26 @@ nodeType *oprFlags(int oper, int flags, int nops, ...) {
   va_end(ap);
   return p;
 }
+
+void freeNode(nodeType *node) {
+  int i;
+  switch (node->type) {
+  case typeOpr:
+    for (i = 0; i < node->opr.nops; ++i)
+      if (node->opr.op[i])
+        freeNode(node->opr.op[i]);
+    break;
+  case typeNumToStr:
+    freeNode(node->numToStr.op);
+    break;
+  case typeStringLiteral:
+    free(node->str.value);
+    break;
+  case typeCon:
+  case typeStringVariable:
+  case typeId:
+    /* nop */
+    break;
+  }
+  free(node);
+}
