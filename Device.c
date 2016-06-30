@@ -23,6 +23,7 @@ static void _pop_for_loop(Device *self);
 static ForLoop *_for_loop(Device *self);
 static int _step_for_loop(Device *self);
 static Statement *_findStatement(Statement *first_statement, int line_num);
+static Statement *_findNextLine(Statement *statement);
 static void _destroyProgram(Statement *first_statement);
 static double _ex(Device *self, nodeType *n);
 
@@ -61,7 +62,7 @@ void Device_run(Device *self, int prog_area) {
   self->curr_prog_area = prog_area;
   self->curr_statement = self->program[self->curr_prog_area];
   while (self->curr_statement && keepRunning) {
-    /* Statement_dump(self->curr_statement, self->ui); */
+    Statement_dump(self->curr_statement, self->ui);
     Device_executeStatement(self, self->curr_statement);
 
     struct timespec ts = { 0, 1000000 };
@@ -128,6 +129,16 @@ static Statement *_findStatement(Statement *first_statement, int line_num) {
     if (p->line_num == line_num)
       return p;
     p = p->next_statement;
+  }
+  return NULL;
+}
+
+static Statement *_findNextLine(Statement *statement) {
+  Statement *p = statement;
+  while (p) {
+    p = p->next_statement;
+    if (p && p->line_num)
+      return p;
   }
   return NULL;
 }
@@ -371,9 +382,13 @@ static int _comparison(Device *self, nodeType *comp) {
   return 0;
 }
 
-static void _if_semicolon(Device *self, nodeType *comp, nodeType *stmnt) {
-  if (_comparison(self, comp))
-    _ex(self, stmnt);
+static void _if_semicolon(Device *self, nodeType *comp, nodeType *statement) {
+  if (_comparison(self, comp)) {
+    _ex(self, statement);
+  } else {
+    self->curr_statement = _findNextLine(self->curr_statement);
+    self->curr_statement_modified = 1;
+  }
 }
 
 static void _if_then(Device *self, nodeType *comp, nodeType *expr) {
