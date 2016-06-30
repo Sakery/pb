@@ -276,8 +276,10 @@ static void _input_phrase(Device *self, nodeType *n) {
     *c = 0;
   if (n->opr.op[1]->type == typeId)
     self->sym[n->opr.op[1]->id.i] = atof(_char_result(self));
-  else
+  else if (n->opr.op[1]->id.i >= 0)
     strncpy(self->str_var[n->opr.op[1]->id.i], _char_result(self), 7);
+  else
+    strncpy(self->excl_str_var, _char_result(self), 30);
 }
 
 static void _input_expression(Device *self, nodeType *n) {
