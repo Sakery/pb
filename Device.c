@@ -21,7 +21,9 @@ typedef struct ForLoopTag {
 static void _push_for_loop(Device *self, Statement *loop_statement, int var_id, double limit, double step);
 static void _pop_for_loop(Device *self);
 static ForLoop *_for_loop(Device *self);
-static int _step_for_loop(Device *self);
+static int _test_for_loop(Device *self);
+static void _step_for_loop(Device *self);
+static Statement *_findForLoopExit(Statement *first_statement, int var_id);
 static Statement *_findStatement(Statement *first_statement, int line_num);
 static Statement *_findNextLine(Statement *statement);
 static void _destroyProgram(Statement *first_statement);
@@ -62,7 +64,7 @@ void Device_run(Device *self, int prog_area) {
   self->curr_prog_area = prog_area;
   self->curr_statement = self->program[self->curr_prog_area];
   while (self->curr_statement && keepRunning) {
-    Statement_dump(self->curr_statement, self->ui);
+    /* Statement_dump(self->curr_statement, self->ui); */
     Device_executeStatement(self, self->curr_statement);
 
     struct timespec ts = { 0, 1000000 };
@@ -229,13 +231,29 @@ static ForLoop *_for_loop(Device *self) {
   return i > -1 ? self->for_loops[i] : NULL;
 }
 
-static int _step_for_loop(Device *self) {
+static int _test_for_loop(Device *self) {
   ForLoop *loop = _for_loop(self);
-  self->sym[loop->var_id] += loop->step;
   if (loop->step > 0)
     return self->sym[loop->var_id] <= loop->limit;
   else
     return self->sym[loop->var_id] >= loop->limit;
+}
+
+static void _step_for_loop(Device *self) {
+  ForLoop *loop = _for_loop(self);
+  self->sym[loop->var_id] += loop->step;
+}
+
+static Statement *_findForLoopExit(Statement *first_statement, int var_id) {
+  Statement *p = first_statement;
+  while (p) {
+    if (p->op->opr.oper == NEXT &&
+      p->op->opr.op[0]->type == typeId &&
+      p->op->opr.op[0]->id.i == var_id)
+      return p->next_statement;
+    p = p->next_statement;
+  }
+  return NULL;
 }
 
 static void _pushSubroutine(Device *self, Statement *ret_statement, int prog_area) {
@@ -304,9 +322,13 @@ static void _key(Device *self) {
 }
 
 static void _print(Device *self, nodeType *char_expr) {
-  _reset_char_result(self);
-  _ex(self, char_expr);
-  UI_printf(self->ui, _char_result(self));
+  if (char_expr) {
+    _reset_char_result(self);
+    _ex(self, char_expr);
+    UI_printf(self->ui, _char_result(self));
+  } else {
+    self->no_cr = 0;
+  }
   if (!self->no_cr) {
     UI_stop(self->ui);
     UI_clear(self->ui);
@@ -362,7 +384,7 @@ static int _comparison(Device *self, nodeType *comp) {
     strcpy(buf1, _char_result(self));
     lhs = strcmp(buf0, buf1);
     rhs = 0;
-    UI_printf(self->ui, "** STRING COMPARISON (%G) ** (%s) (%s)\n", lhs, buf0, buf1);
+    /* UI_printf(self->ui, "** STRING COMPARISON (%G) ** (%s) (%s)\n", lhs, buf0, buf1); */
   } else {
     lhs = _ex(self, comp->opr.op[0]);
     rhs = _ex(self, comp->opr.op[1]);
@@ -417,11 +439,17 @@ static void _for(Device *self, nodeType *num_as, nodeType *to_expr, nodeType *st
   double limit = _ex(self, to_expr);
   double step = step_expr ? _ex(self, step_expr) : 1.0;
   _push_for_loop(self, self->curr_statement->next_statement, var, limit, step);
+  if (!_test_for_loop(self)) {
+    self->curr_statement = _findForLoopExit(self->curr_statement->next_statement, var);
+    self->curr_statement_modified = 1;
+    _pop_for_loop(self);
+  }
 }
 
 static void _next(Device *self, nodeType *num_var) {
   /* NOTE: we're ignoring the num_var just at the moment */
-  if (_step_for_loop(self)) {
+  _step_for_loop(self);
+  if (_test_for_loop(self)) {
     self->curr_statement = _for_loop(self)->loop_statement;
     self->curr_statement_modified = 1;
   } else {
@@ -541,7 +569,9 @@ static double _ex(Device *self, nodeType *n) {
       break;
     case PRINT:
       info("PRINT");
-      if (n->opr.nops == 1)
+      if (n->opr.nops == 0)
+        _print(self, NULL);
+      else if (n->opr.nops == 1)
         _print(self, n->opr.op[0]);
       else
         _print_csr(self, n->opr.op[0], n->opr.op[1]);
