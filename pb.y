@@ -17,8 +17,6 @@
   struct StatementTag *statement;
 };
 
-%start program
-
 %token EQ
 %token NE
 %token LT
@@ -104,7 +102,18 @@
 
 %type <statement> line statement_list;
 
+%token START_PROGRAM
+%token START_STATEMENT
+%token START_EXPRESSION
+
+%start meta_start
+
 %%
+
+meta_start: START_PROGRAM program
+          | START_STATEMENT statement
+          | START_EXPRESSION expression
+          ;
 
 program:
 list

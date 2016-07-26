@@ -1,8 +1,19 @@
 %{
 #include "pb.h"
 #include "pb.tab.h"
+int start_token;
 %}
+
 %%
+
+%{
+  if (start_token) {
+    int t = start_token;
+    start_token = 0;
+    return t;
+  }
+%}
+
 "="      { return EQ; }
 "<>"     { return NE; }
 "≠"      { return NE; }

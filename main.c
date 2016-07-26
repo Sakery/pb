@@ -4,6 +4,9 @@
 #include "UI.h"
 #include "pb.h"
 
+#include "pb.tab.h"
+extern int start_token;
+
 extern FILE *yyin;
 
 Device *device;
@@ -13,6 +16,7 @@ int main(int argc, char const *argv[]) {
   device = Device_create(ui);
 
   yyin = fopen(argv[1], "r");
+  start_token = START_PROGRAM;
   yyparse();
   fclose(yyin);
 
