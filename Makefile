@@ -20,7 +20,7 @@ lex.yy.c: pb.l pb.h pb.tab.h
 lex.yy.o: lex.yy.c
 	$(CC) -std=c89 -c $*.c -o $@ -O
 
-main.o: main.c Device.h UI.h pb.h
+main.o: main.c Device.h UI.h
 
 node.o: node.c pb.h pb.tab.h
 

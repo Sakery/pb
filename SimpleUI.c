@@ -24,10 +24,15 @@ void UI_printf(UI *self, const char* format, ...) {
 
 void UI_gets(UI *self, char *str, int n) {
   fgets(str, n, self->in);
+
+  /* remove the LR from the string */
+  char *c = strchr(str, 10);
+  if (c)
+    *c = 0;
 }
 
 void UI_stop(UI *self) {
-  /* fgetc(self->in); */
+  /* fprintf(self->out, "\n"); */
 }
 
 void UI_csr(UI *self, int x) {

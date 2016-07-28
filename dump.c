@@ -90,6 +90,13 @@ void dump(UI *ui, nodeType *n) {
     case VAC:
       UI_printf(ui, "VAC");
       break;
+    case RUN:
+      UI_printf(ui, "RUN");
+      if (n->opr.nops > 0) {
+        UI_printf(ui, " ");
+        dump(ui, n->opr.op[0]);
+      }
+      break;
     case MODE:
       UI_printf(ui, "MODE ");
       dump(ui, n->opr.op[0]);
@@ -123,6 +130,34 @@ void dump(UI *ui, nodeType *n) {
       UI_printf(ui, "VAL(");
       dump(ui, n->opr.op[0]);
       UI_printf(ui, ")");
+      break;
+    case SAVE:
+      UI_printf(ui, "SAVE");
+      if (n->opr.nops == 1) {
+        UI_printf(ui, " ");
+        dump(ui, n->opr.op[0]);
+      }
+      break;
+    case LOAD:
+      UI_printf(ui, "LOAD");
+      if (n->opr.nops == 1) {
+        UI_printf(ui, " ");
+        dump(ui, n->opr.op[0]);
+      }
+      break;
+    case SAVEA:
+      UI_printf(ui, "SAVE A");
+      if (n->opr.nops == 1) {
+        UI_printf(ui, " ");
+        dump(ui, n->opr.op[0]);
+      }
+      break;
+    case LOADA:
+      UI_printf(ui, "LOAD A");
+      if (n->opr.nops == 1) {
+        UI_printf(ui, " ");
+        dump(ui, n->opr.op[0]);
+      }
       break;
     case GOTO:
       UI_printf(ui, "GOTO ");

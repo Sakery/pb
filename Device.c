@@ -11,6 +11,16 @@
 #include "pb.h"
 #include "pb.tab.h"
 
+/* extern FILE *yyin; */
+extern int start_token;
+#ifndef YY_TYPEDEF_YY_BUFFER_STATE
+#define YY_TYPEDEF_YY_BUFFER_STATE
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+#endif
+YY_BUFFER_STATE yy_scan_string (const char *yy_str);
+void yy_delete_buffer (YY_BUFFER_STATE b);
+void yyrestart  (FILE * input_file);
+
 typedef struct ForLoopTag {
   Statement *loop_statement;
   int var_id;
@@ -54,9 +64,17 @@ void Device_destroy(Device *self) {
   free(self);
 }
 
+void Device_loadFile(Device *self, int prog_area, const char *filename) {
+  FILE *f = fopen(filename, "r");
+  start_token = START_PROGRAM;
+  yyrestart(f);
+  yyparse();
+  fclose(f);
+}
+
 void Device_run(Device *self, int prog_area) {
 
-  signal(SIGINT, intHandler);
+  /* signal(SIGINT, intHandler); */
   
   UI_clear(self->ui);
   UI_csr(self->ui, 0);
@@ -69,6 +87,39 @@ void Device_run(Device *self, int prog_area) {
 
     struct timespec ts = { 0, 1000000 };
     nanosleep(&ts, NULL);
+  }
+}
+
+void Device_mainLoop(Device *self) {
+
+  UI_clear(self->ui);
+  UI_csr(self->ui, 0);
+
+  char buf[MAX_OUTPUT];
+
+  /* It is a great pleasure to output... */
+  UI_printf(self->ui, "READY P%d", self->curr_prog_area);
+  UI_clear(self->ui);
+
+  while (1) {
+    UI_gets(self->ui, buf, MAX_OUTPUT);
+    if (strlen(buf) == 0)
+      continue;
+
+    self->curr_prog_area = 0;
+    self->curr_statement = NULL;
+
+    YY_BUFFER_STATE bs = yy_scan_string(buf);
+    start_token = START_STATEMENT;
+    yyparse();
+    yy_delete_buffer(bs);
+
+    if (self->curr_statement) {
+      Statement *s = self->curr_statement;
+      /* Statement_dump(s, self->ui); */
+      Device_executeStatement(self, s);
+      Statement_destroy(s);
+    }
   }
 }
 
@@ -457,6 +508,18 @@ static void _next(Device *self, nodeType *num_var) {
   }
 }
 
+static void _list(Device *self, nodeType *integer) {
+  Device_list(self, 0);
+}
+
+static void _lista(Device *self) {
+  Device_listAll(self);
+}
+
+static void _run(Device *self, nodeType *integer) {
+  Device_run(self, 0);
+}
+
 static void _mode(Device *self, nodeType *integer) {
   int mode = _ex(self, integer);
   switch (mode) {
@@ -506,11 +569,21 @@ static double _val(Device *self, nodeType *str_var) {
   return val;
 }
 
+static void _load(Device *self, nodeType *str_literal) {
+  if (str_literal) {
+    _reset_char_result(self);
+    _ex(self, str_literal);
+    Device_loadFile(self, 0, _char_result(self));
+  } else {
+    UI_printf(self->ui, "Need filename\n");
+  }
+}
+
 void Device_executeStatement(Device *self, Statement *statement) {
   _ex(self, statement->op);
 
   /* Advance the statement pointer if this statement didn't modify it */
-  if (!self->curr_statement_modified)
+  if (self->curr_statement && !self->curr_statement_modified)
     self->curr_statement = self->curr_statement->next_statement;
   self->curr_statement_modified = 0;
 }
@@ -613,6 +686,18 @@ static double _ex(Device *self, nodeType *n) {
     case VAC:
       info("VAC");
       break;
+    case LIST:
+      info("LIST");
+      _list(self, n->opr.nops > 0 ? n->opr.op[0] : NULL);
+      break;
+    case LISTA:
+      info("LISTA");
+      _lista(self);
+      break;
+    case RUN:
+      info("RUN");
+      _run(self, n->opr.nops > 0 ? n->opr.op[0] : NULL);
+      break;
     case MODE:
       info("MODE");
       _mode(self, n->opr.op[0]);
@@ -638,6 +723,19 @@ static double _ex(Device *self, nodeType *n) {
     case VAL:
       info("VAL");
       return _val(self, n->opr.op[0]);
+    case SAVE:
+      info("SAVE");
+      break;
+    case LOAD:
+      info("LOAD");
+      _load(self, n->opr.nops > 0 ? n->opr.op[0] : NULL);
+      break;
+    case SAVEA:
+      info("SAVEA");
+      break;
+    case LOADA:
+      info("LOADA");
+      break;
     case PLUS:
       info("PLUS");
       if (n->opr.nops == 1)
