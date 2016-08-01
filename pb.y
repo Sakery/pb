@@ -116,10 +116,10 @@ num_assignment: num_variable EQ expression { $$ = opr(ASSIGN_NUM, 2, $1, $3); }
 
 str_assignment: str_variable EQ char_expression { $$ = opr(ASSIGN_STR, 2, $1, $3); }
 
-print_expression: char_expression                            { $$ = $1; }
-                | char_expression COMMA print_expression     { $$ = opr(COMMA, 2, $1, $3); }
-                | char_expression SEMICOLON print_expression { $$ = opr(SEMICOLON, 2, $1, $3); }
-                | char_expression SEMICOLON                  { $$ = opr(SEMICOLON, 1, $1); }
+print_expression: char_expression                              { $$ = $1; }
+                | char_expression COMMA print_expression       { $$ = opr(COMMA, 2, $1, $3); }
+                | char_expression SEMICOLON print_expression   { $$ = opr(SEMICOLON, 2, $1, $3); }
+                | char_expression SEMICOLON                    { $$ = opr(SEMICOLON, 1, $1); }
                 ;
 
 char_expression: expression                                    { $$ = numToStr($1); }
@@ -146,8 +146,8 @@ comparison: expression EQ expression           { $$ = opr(EQ, 2, $1, $3); }
 
 expression: pow_expr { $$ = $1; }
 
-pow_expr: add_expr              { $$ = $1; }
-        | pow_expr POW add_expr { $$ = opr(POW, 2, $1, $3); /* pow($1, $3); */ }
+pow_expr: add_expr                { $$ = $1; }
+        | pow_expr POW add_expr   { $$ = opr(POW, 2, $1, $3); /* pow($1, $3); */ }
         ;
 
 add_expr: mul_expr                { $$ = $1; }
@@ -160,9 +160,9 @@ mul_expr: unary_expr              { $$ = $1; }
         | mul_expr DIV unary_expr { $$ = opr(DIV, 2, $1, $3); /* $1 / $3; */ }
         ;
 
-unary_expr: primary        { $$ = $1; }
-          | PLUS primary   { $$ = opr(PLUS, 1, $2); }
-          | MINUS primary  { $$ = opr(MINUS, 1, $2); }
+unary_expr: primary               { $$ = $1; }
+          | PLUS primary          { $$ = opr(PLUS, 1, $2); }
+          | MINUS primary         { $$ = opr(MINUS, 1, $2); }
           ;
 
 primary: function_call            { $$ = $1; }
@@ -195,8 +195,8 @@ function_call: SIN primary                    { $$ = opr(SIN, 1, $2); }
              | VAL LPAREN str_variable RPAREN { $$ = opr(VAL, 1, $3); }
              ;
 
-num_variable: NAME                          { $$ = id($1, NULL); }
-            | NAME LPAREN expression RPAREN { $$ = id($1, $3); }
+num_variable: NAME                            { $$ = id($1, NULL); }
+            | NAME LPAREN expression RPAREN   { $$ = id($1, $3); }
             ;
 
 str_variable: STRVAR                          { $$ = strvar($1, NULL); }

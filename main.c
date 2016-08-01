@@ -10,7 +10,7 @@ int main(int argc, const char *argv[]) {
   device = Device_create(ui);
   if (argv[1]) {
     Device_loadFile(device, 0, argv[1]);
-    Device_run(device, 0);
+    Device_run(device, 0, 0);
   } else {
     Device_mainLoop(device);
   }

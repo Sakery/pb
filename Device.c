@@ -72,7 +72,7 @@ void Device_loadFile(Device *self, int prog_area, const char *filename) {
   fclose(f);
 }
 
-void Device_run(Device *self, int prog_area) {
+void Device_run(Device *self, int prog_area, int line_num) {
 
   /* signal(SIGINT, intHandler); */
   
@@ -80,7 +80,14 @@ void Device_run(Device *self, int prog_area) {
   UI_csr(self->ui, 0);
 
   self->curr_prog_area = prog_area;
-  self->curr_statement = self->program[self->curr_prog_area];
+  if (line_num) {
+    self->curr_statement = _findStatement(self->program[self->curr_prog_area], line_num);
+  } else {
+    self->curr_statement = self->program[self->curr_prog_area];
+  }
+
+  /* TODO Check curr_statement is valid */
+
   while (self->curr_statement && keepRunning) {
     /* Statement_dump(self->curr_statement, self->ui); */
     Device_executeStatement(self, self->curr_statement);
@@ -517,7 +524,8 @@ static void _lista(Device *self) {
 }
 
 static void _run(Device *self, nodeType *integer) {
-  Device_run(self, 0);
+  int line_num = _ex(self, integer);
+  Device_run(self, 0, line_num);
 }
 
 static void _mode(Device *self, nodeType *integer) {

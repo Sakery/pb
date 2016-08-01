@@ -42,7 +42,7 @@ extern Device *device;
 Device *Device_create(struct UITag *ui);
 void Device_destroy(Device *self);
 void Device_loadFile(Device *self, int prog_area, const char *filename);
-void Device_run(Device *self, int prog_area);
+void Device_run(Device *self, int prog_area, int line_num);
 void Device_mainLoop(Device *self);
 void Device_list(Device *self, int prog_area);
 void Device_listAll(Device *self);
