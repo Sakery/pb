@@ -5,6 +5,12 @@
 _pb_ is a simulation of the Casio PB-100 pocket computer. It consists of a
 BASIC interpreter and a simulated pocket computer environment.
 
+Note that this technically isn't a PB-100 emulator since it is only an
+implementation of a compatible BASIC interpreter. A full emulation would
+recreate the Hitachi HD61913 microprocessor in software, using the system
+software of the original PB-100. If anyone has these technical details, please
+get in touch.
+
 ## Useful Links
 
 - [Technical information](http://www.pisi.com.pl/piotr433/) on a range of
