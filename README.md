@@ -15,7 +15,7 @@ get in touch.
 
 - [Technical information](http://www.pisi.com.pl/piotr433/) on a range of
 classic Casio programmable calculators and personal computers,
-by [Piotr Piatek](piotr433@pisi.com.pl).
+by [Piotr Piatek](mailto:piotr433@pisi.com.pl).
 - [CASsette IO Utilities](http://www.mvcsys.de/doc/casioutil.html) to manage
 tape images for the PB-100 and other Casio computers,
 by [Marcus von Cube](mailto:marcus@mvcsys.de).
