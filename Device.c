@@ -75,7 +75,7 @@ void Device_loadFile(Device *self, int prog_area, const char *filename) {
 void Device_run(Device *self, int prog_area, int line_num) {
 
   /* signal(SIGINT, intHandler); */
-  
+
   UI_clear(self->ui);
   UI_csr(self->ui, 0);
 
@@ -556,14 +556,14 @@ static double _len(Device *self, nodeType *str_var) {
   _push_char_result(self);
   _reset_char_result(self);
   _ex(self, str_var);
-  int len = strlen(_char_result(self));
+  size_t len = strlen(_char_result(self));
   _pop_char_result(self);
   return len;
 }
 
 static void _mid(Device *self, nodeType *m, nodeType *n) {
   int start = _ex(self, m) - 1;
-  int len = n ? _ex(self, n) : strlen(self->excl_str_var);
+  size_t len = n ? _ex(self, n) : strlen(self->excl_str_var);
   strncat(_char_result(self), self->excl_str_var + start, len);
   /* _char_result(self)[len] = 0; */
 }
@@ -596,6 +596,10 @@ void Device_executeStatement(Device *self, Statement *statement) {
   self->curr_statement_modified = 0;
 }
 
+/*
+ * Returns a double for numeric values. Appends character results
+ * to "_char_result"
+ */
 static double _ex(Device *self, nodeType *n) {
   if (!n)
     return 0;
@@ -746,10 +750,16 @@ static double _ex(Device *self, nodeType *n) {
       break;
     case PLUS:
       info("PLUS");
-      if (n->opr.nops == 1)
+      if (n->opr.flags == 1) {
+        /* concatenate two strings */
+        _ex(self, n->opr.op[0]);
+        _ex(self, n->opr.op[1]);
+        break;
+      } else if (n->opr.nops == 1) {
         return _ex(self, n->opr.op[0]);
-      else
+      } else {
         return _ex(self, n->opr.op[0]) + _ex(self, n->opr.op[1]);
+      }
     case MINUS:
       info("MINUS");
       if (n->opr.nops == 1)
@@ -867,6 +877,13 @@ static double _ex(Device *self, nodeType *n) {
         _ex(self, n->opr.op[1]);
       else
         self->no_cr = 1;
+      break;
+    case COMMA:
+      info("COMMA");
+      _ex(self, n->opr.op[0]);
+      strcat(_char_result(self), "\n");
+      if (n->opr.nops > 1)
+        _ex(self, n->opr.op[1]);
       break;
     case HASH:
       info("HASH");

@@ -106,8 +106,12 @@ P[0-9]    { yylval.intValue = atoi(yytext + 1); return PROGRAM; }
 \        { ; }
 \t       { ; }
 
+"Program:"      { return PF; }
+"All programs:" { return AF; }
+"END"           { return END; }
+
 .        { yyerror("illegal token"); }
 %%
 #ifndef yywrap
-yywrap() { return 1; }
+int yywrap() { return 1; }
 #endif

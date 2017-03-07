@@ -4,7 +4,7 @@
   #include "pb.h"
   #include "Device.h"
   #include "Statement.h"
-  
+
   int curr_prog_area = 0;
   int yydebug = 0;
 %}
@@ -28,11 +28,12 @@
 %token LEN MID VAL SAVE LOAD SAVEA LOADA PUT GET VER DEFM
 %token <intValue> NAME
 %token <intValue> STRVAR
+%token PF AF
 %token EOLN
 
 %token <intValue> PROGRAM;
 
-%type <node> statement input_expression input_phrase num_assignment str_assignment print_expression char_expression comparison expression pow_expr add_expr mul_expr unary_expr primary integer function_call num_variable str_variable str_literal prog_area
+%type <node> statement input_expression input_phrase num_assignment str_assignment print_expression concat_expression char_expression comparison expression pow_expr add_expr mul_expr unary_expr primary integer function_call num_variable str_variable str_literal prog_area
 
 %type <statement> line statement_list;
 
@@ -57,6 +58,9 @@ list: list line   { if ($2) Device_addStatement(device, curr_prog_area, $2); }
 
 line: INTEGER statement_list EOLN { $$ = $2; $2->line_num = $1; }
     | PROGRAM EOLN                { $$ = NULL; curr_prog_area = $1; }
+    | PF str_literal EOLN         { $$ = NULL; }
+    | AF str_literal EOLN         { $$ = NULL; }
+    | END EOLN                    { $$ = NULL; }
     ;
 
 statement_list: statement                      { $$ = Statement_create($1, NULL); }
@@ -114,13 +118,16 @@ input_phrase: str_literal COMMA num_variable { $$ = opr(COMMA, 2, $1, $3); }
 
 num_assignment: num_variable EQ expression { $$ = opr(ASSIGN_NUM, 2, $1, $3); }
 
-str_assignment: str_variable EQ char_expression { $$ = opr(ASSIGN_STR, 2, $1, $3); }
+str_assignment: str_variable EQ concat_expression { $$ = opr(ASSIGN_STR, 2, $1, $3); }
 
-print_expression: char_expression                              { $$ = $1; }
-                | char_expression COMMA print_expression       { $$ = opr(COMMA, 2, $1, $3); }
-                | char_expression SEMICOLON print_expression   { $$ = opr(SEMICOLON, 2, $1, $3); }
-                | char_expression SEMICOLON                    { $$ = opr(SEMICOLON, 1, $1); }
+print_expression: concat_expression                            { $$ = $1; }
+                | concat_expression COMMA print_expression     { $$ = opr(COMMA, 2, $1, $3); }
+                | concat_expression SEMICOLON print_expression { $$ = opr(SEMICOLON, 2, $1, $3); }
+                | concat_expression SEMICOLON                  { $$ = opr(SEMICOLON, 1, $1); }
                 ;
+
+concat_expression: char_expression                             { $$ = $1; }
+                 | char_expression PLUS concat_expression      { $$ = oprFlags(PLUS, 1, 2, $1, $3); }
 
 char_expression: expression                                    { $$ = numToStr($1); }
                | str_variable                                  { $$ = $1; }

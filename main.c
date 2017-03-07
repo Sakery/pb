@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "Device.h"
-#include "UI.h"
+#include "SimpleUI.h"
 
 Device *device;
 
