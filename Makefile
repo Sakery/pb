@@ -1,8 +1,8 @@
 
 PROGRAM = pb
 OBJS    = pb.tab.o lex.yy.o main.o node.o dump.o Device.o Statement.o SimpleUI.o kbhit.o
-CC      = clang
-CFLAGS  = -std=c89 -Wall -g -O0
+CC      = gcc
+CFLAGS  = -std=gnu99 -Wall -g -O0
 YFLAGS  = -d --debug --verbose
 #YFLAGS  = -d
 
@@ -35,7 +35,7 @@ UI.o: UI.c UI.h
 SimpleUI.o: SimpleUI.c SimpleUI.h
 
 pb: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@ -ll -lncurses
+	$(CC) $(CFLAGS) $(OBJS) -o $@ -ll -lm -lncurses
 
 clean:
 	rm -f $(OBJS) core *.o $(PROGRAM) pb.c y.* lex.yy.* pb.tab.* pb.output
