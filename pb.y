@@ -35,10 +35,11 @@
 
 %type <node> statement input_expression input_phrase num_assignment str_assignment print_expression concat_expression char_expression comparison expression pow_expr add_expr mul_expr unary_expr primary integer function_call num_variable str_variable str_literal prog_area
 
-%type <statement> line statement_list;
+%type <statement> line statement_list wrt_mode_line
 
 %token START_PROGRAM
 %token START_STATEMENT
+%token START_WRT_MODE
 
 %start meta_start
 
@@ -48,7 +49,12 @@ meta_start: START_PROGRAM program
           | START_STATEMENT statement   { device->curr_statement = Statement_create($2, NULL); }
           | START_STATEMENT expression
             { device->curr_statement = Statement_create(opr(PRINT, 1, numToStr($2)), NULL); }
+          | START_WRT_MODE wrt_mode_line
           ;
+
+wrt_mode_line: INTEGER statement_list { $2->line_num = $1; Device_addStatement(device, curr_prog_area, $2); }
+             | statement { device->curr_statement = Statement_create($1, NULL); }
+             ;
 
 program: list
 

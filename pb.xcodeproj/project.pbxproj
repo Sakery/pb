@@ -34,7 +34,7 @@
 		03C8624A1E6CE4CF00E8C0ED /* pb */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pb; sourceTree = BUILT_PRODUCTS_DIR; };
 		03C8624D1E6CE4CF00E8C0ED /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		03C862541E6CE58600E8C0ED /* Device.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = Device.c; sourceTree = SOURCE_ROOT; tabWidth = 2; };
-		03C862551E6CE58600E8C0ED /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = SOURCE_ROOT; };
+		03C862551E6CE58600E8C0ED /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = SOURCE_ROOT; tabWidth = 2; };
 		03C862561E6CE58600E8C0ED /* dump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dump.c; sourceTree = SOURCE_ROOT; };
 		03C862571E6CE58600E8C0ED /* kbhit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kbhit.c; sourceTree = SOURCE_ROOT; };
 		03C862581E6CE58600E8C0ED /* node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = node.c; sourceTree = SOURCE_ROOT; };
@@ -42,7 +42,7 @@
 		03C8625A1E6CE58600E8C0ED /* pb.l */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.lex; path = pb.l; sourceTree = SOURCE_ROOT; tabWidth = 2; };
 		03C8625B1E6CE58600E8C0ED /* pb.y */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.yacc; path = pb.y; sourceTree = SOURCE_ROOT; tabWidth = 2; };
 		03C8625C1E6CE58600E8C0ED /* Program.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Program.h; sourceTree = SOURCE_ROOT; };
-		03C8625D1E6CE58600E8C0ED /* SimpleUI.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SimpleUI.c; sourceTree = SOURCE_ROOT; };
+		03C8625D1E6CE58600E8C0ED /* SimpleUI.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = SimpleUI.c; sourceTree = SOURCE_ROOT; tabWidth = 2; };
 		03C8625E1E6CE58600E8C0ED /* SimpleUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimpleUI.h; sourceTree = SOURCE_ROOT; };
 		03C8625F1E6CE58600E8C0ED /* Statement.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Statement.c; sourceTree = SOURCE_ROOT; };
 		03C862601E6CE58600E8C0ED /* Statement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Statement.h; sourceTree = SOURCE_ROOT; };

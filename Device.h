@@ -28,6 +28,7 @@ typedef struct DeviceTag {
   int no_cr;
   char char_result_stack[8][MAX_OUTPUT];
   char char_result_stack_index;
+  int wrt_mode;
   int angular_unit;
   int printer_on;
   struct ForLoopTag *for_loops[4];

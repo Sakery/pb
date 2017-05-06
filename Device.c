@@ -7,7 +7,7 @@
 #include <signal.h>
 #include "Device.h"
 #include "Statement.h"
-#include "UI.h"
+#include "SimpleUI.h"
 #include "pb.h"
 #include "pb.tab.h"
 
@@ -43,6 +43,7 @@ static volatile int keepRunning = 1;
 
 void intHandler(int dummy) {
   keepRunning = 0;
+  signal(SIGINT, NULL);
 }
 
 Device *Device_create(UI *ui) {
@@ -66,15 +67,17 @@ void Device_destroy(Device *self) {
 
 void Device_loadFile(Device *self, int prog_area, const char *filename) {
   FILE *f = fopen(filename, "r");
-  start_token = START_PROGRAM;
-  yyrestart(f);
-  yyparse();
-  fclose(f);
+  if (f) {
+    start_token = START_PROGRAM;
+    yyrestart(f);
+    yyparse();
+    fclose(f);
+  }
 }
 
 void Device_run(Device *self, int prog_area, int line_num) {
 
-  /* signal(SIGINT, intHandler); */
+  signal(SIGINT, intHandler);
 
   UI_clear(self->ui);
   UI_csr(self->ui, 0);
@@ -104,11 +107,15 @@ void Device_mainLoop(Device *self) {
 
   char buf[MAX_OUTPUT];
 
-  /* It is a great pleasure to output... */
-  UI_printf(self->ui, "READY P%d", self->curr_prog_area);
-  UI_clear(self->ui);
+  int last_wrt_mode = -1;
 
   while (1) {
+
+    if (last_wrt_mode != self->wrt_mode) {
+      UI_ready(self->ui, self->wrt_mode, self->curr_prog_area);
+    }
+    last_wrt_mode = self->wrt_mode;
+
     UI_gets(self->ui, buf, MAX_OUTPUT);
     if (strlen(buf) == 0)
       continue;
@@ -117,7 +124,10 @@ void Device_mainLoop(Device *self) {
     self->curr_statement = NULL;
 
     YY_BUFFER_STATE bs = yy_scan_string(buf);
-    start_token = START_STATEMENT;
+    if (self->wrt_mode == 0)
+      start_token = START_STATEMENT;
+    else
+      start_token = START_WRT_MODE;
     yyparse();
     yy_delete_buffer(bs);
 
@@ -371,12 +381,11 @@ static void _input(Device *self, nodeType *n) {
 static void _key(Device *self) {
   int c;
   _reset_char_result(self);
-  c = fgetc(stdin);
-  if (c != EOF) {
+  c = UI_key(self->ui);
+  if (c != 0) {
     _char_result(self)[0] = c;
     _char_result(self)[1] = 0;
   }
-  UI_printf(self->ui, "KEY=\"%s\"\n", _char_result(self));
 }
 
 static void _print(Device *self, nodeType *char_expr) {
@@ -531,6 +540,12 @@ static void _run(Device *self, nodeType *integer) {
 static void _mode(Device *self, nodeType *integer) {
   int mode = _ex(self, integer);
   switch (mode) {
+  case 0:
+    self->wrt_mode = 0;
+    break;
+  case 1:
+    self->wrt_mode = 1;
+    break;
   case 4:
     self->angular_unit = ANGULAR_UNIT_DEG;
     break;
