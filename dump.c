@@ -4,7 +4,7 @@
 #include "pb.h"
 #include "pb.tab.h"
 
-void dump(UI *ui, nodeType *n) {
+void dump(struct UI *ui, nodeType *n) {
   if (!n)
     return;
   switch (n->type) {

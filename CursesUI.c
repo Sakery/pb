@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ncurses.h>
+
+typedef struct UI {
+  WINDOW *console_win;
+  WINDOW *printer_win;
+} UI;
 
 UI *UI_create() {
   UI *self = calloc(1, sizeof(UI));
@@ -40,6 +46,12 @@ void UI_gets(UI *self, char *str, int n) {
   wgetnstr(self->console_win, str, n);
 }
 
+char UI_key(UI *self) {
+  char c = 0;
+  c = getch();
+  return c;
+}
+
 void UI_stop(UI *self) {
   /* wrefresh(self->console_win); */
   wgetch(self->console_win);
@@ -51,4 +63,15 @@ void UI_csr(UI *self, int x) {
 
 void UI_clear(UI *self) {
   werase(self->console_win);
+}
+
+void UI_ready(UI *self, int mode, int prog_area) {
+  if (mode == 0) {
+    /* It is a great pleasure to output... */
+    UI_printf(self, "READY P%d", prog_area);
+    UI_clear(self);
+  } else {
+    UI_printf(self, "P 0123456789 %d", prog_area);
+    UI_clear(self);
+  }
 }

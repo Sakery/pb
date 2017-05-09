@@ -1,6 +1,6 @@
 
 PROGRAM = pb
-OBJS    = pb.tab.o lex.yy.o main.o node.o dump.o Device.o Statement.o SimpleUI.o kbhit.o
+OBJS    = pb.tab.o lex.yy.o main.o node.o dump.o Device.o Statement.o TermUI.o
 CC      = gcc
 CFLAGS  = -std=gnu99 -Wall -g -O0
 YFLAGS  = -d --debug --verbose
@@ -30,12 +30,14 @@ Device.o: Device.c Device.h Statement.h UI.h pb.h pb.tab.h
 
 Statement.o: Statement.c Statement.h UI.h
 
-UI.o: UI.c UI.h
+SimpleUI.o: SimpleUI.c UI.h
 
-SimpleUI.o: SimpleUI.c SimpleUI.h
+TermUI.o: TermUI.c UI.h
+
+CursesUI.o: CursesUI.c UI.h
 
 pb: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@ -ll -lm -lncurses
+	$(CC) $(CFLAGS) $(OBJS) -o $@ -ll -lm
 
 clean:
 	rm -f $(OBJS) core *.o $(PROGRAM) pb.c y.* lex.yy.* pb.tab.* pb.output

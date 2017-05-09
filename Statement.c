@@ -17,14 +17,14 @@ void Statement_destroy(Statement *self) {
   free(self);
 }
 
-void Statement_dump(Statement *self, UI *ui) {
+void Statement_dump(Statement *self, struct UI *ui) {
   if (self->line_num)
     UI_printf(ui, "%d ", self->line_num);
   dump(ui, self->op);
   UI_printf(ui, "\n");
 }
 
-void Statement_dumpLine(Statement *self, UI *ui) {
+void Statement_dumpLine(Statement *self, struct UI *ui) {
   if (self->line_num)
     UI_printf(ui, "%d ", self->line_num);
   dump(ui, self->op);

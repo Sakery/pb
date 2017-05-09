@@ -7,7 +7,7 @@
 #include <signal.h>
 #include "Device.h"
 #include "Statement.h"
-#include "SimpleUI.h"
+#include "UI.h"
 #include "pb.h"
 #include "pb.tab.h"
 
@@ -46,7 +46,7 @@ void intHandler(int dummy) {
   signal(SIGINT, NULL);
 }
 
-Device *Device_create(UI *ui) {
+Device *Device_create(struct UI *ui) {
   Device *device = calloc(1, sizeof(Device));
   device->ui = ui;
   device->for_loop_index = -1;
@@ -119,6 +119,7 @@ void Device_mainLoop(Device *self) {
     UI_gets(self->ui, buf, MAX_OUTPUT);
     if (strlen(buf) == 0)
       continue;
+    UI_clear(self->ui);
 
     self->curr_prog_area = 0;
     self->curr_statement = NULL;

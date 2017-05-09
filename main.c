@@ -1,12 +1,12 @@
 
 #include <stdio.h>
 #include "Device.h"
-#include "SimpleUI.h"
+#include "UI.h"
 
 Device *device;
 
 int main(int argc, const char *argv[]) {
-  UI *ui = UI_create();
+  struct UI *ui = UI_create();
   device = Device_create(ui);
   if (argv[1]) {
     Device_loadFile(device, 0, argv[1]);

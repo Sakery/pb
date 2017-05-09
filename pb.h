@@ -1,7 +1,7 @@
 #ifndef PB_H__
 #define PB_H__
 
-struct UITag;
+struct UI;
 
 typedef enum {
   typeCon,
@@ -68,7 +68,7 @@ nodeType *opr(int oper, int nops, ...);
 nodeType *oprFlags(int oper, int flags, int nops, ...);
 void freeNode(nodeType *node);
 
-void dump(struct UITag *ui, nodeType *n);
+void dump(struct UI *ui, nodeType *n);
 /*
 double ex(nodeType *n);
 
